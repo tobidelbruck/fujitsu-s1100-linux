@@ -16,6 +16,11 @@ Enables button scanning to PDF with brightness & contrast settings on Linux (Ubu
 - Ubuntu 24.04 or compatible Linux
 - S1100 firmware: the installer downloads it via wget from [stevleibelt/scansnap-firmware](https://github.com/stevleibelt/scansnap-firmware). If `~/scansnap-firmware` exists, its remote URL is used (for forks); otherwise the default GitHub project is used.
 
+## Resources
+
+- **[Fujitsu ScanSnap S1100](https://www.fujitsu.com/global/products/computing/peripheral/scanners/scansnap/s1100/)** — Official product page (specifications, features)
+- **[ScanSnap Support](https://www.fujitsu.com/global/scanners/scansnap/g-support/en/)** — Drivers and ScanSnap Home software for **Windows** and **Mac** users
+
 ## Installation
 
 ```bash
@@ -105,6 +110,25 @@ With the scanner connected and journalctl running:
 4. **Evince closed**: Session is cleared; the next button press starts a new document.
 
 Scans are saved under `~/Documents/scans/` with filenames like `scan_20260301_170910.pdf`.
+
+## Adjusting brightness and contrast
+
+The script uses `--brightness=30` and `--contrast=10` by default. To change these:
+
+1. Edit the script. If modifying the installed copy:
+   ```bash
+   sudo nano /usr/local/bin/scan-button.sh
+   ```
+   Or edit `scan-button.sh` in this repo and re-run the installer.
+
+2. Find the `scanimage` lines (there are two: one for new sessions, one for adding pages) and change the values:
+   ```bash
+   --brightness=30 --contrast=10
+   ```
+
+3. Valid range for both options: **-127 to 127** (default is 0). Increase brightness for lighter scans; increase contrast for more defined blacks and whites.
+
+4. If you edited `/usr/local/bin/scan-button.sh` directly, no restart is needed—changes apply on the next button press. If you edited the repo and re-ran the installer, the updated script is already deployed.
 
 ## License
 
