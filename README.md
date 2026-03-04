@@ -2,7 +2,7 @@
 
 ![ScanSnap S1100](scansnap-s1100.jpg)
 
-The ScanSnap S1100 is a very useful USB compact doc scanner which you can still get on ebay for about $50 in 2026.  On linux there is no Futitsu support, but thanks to linux community there are tools to make it work almost like the ScanSnap software which is actually very good despite constant updates. 
+The ScanSnap S1100 is a handy USB compact doc scanner which you can still get on ebay for about $50 in 2026.  On linux there is no Futitsu support, but thanks to linux community there are tools to make it work almost like the ScanSnap software which is actually very good despite constant updates. 
 
 This code enables button scanning to PDF with brightness & contrast settings on Linux (Ubuntu 24+). When you press the physical scan button on the Fujitsu ScanSnap S1100, the scanner captures a page, adds it to a PDF, and opens it in a viewer. Feed pages one at a time and press the button for each; close the PDF viewer when done to start a new document next time.
 
