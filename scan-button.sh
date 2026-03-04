@@ -18,8 +18,11 @@ SESSION_FILE="/home/$USER_NAME/.scan-session"
 VIEWER="evince"
 
 # Required for GUI apps and notifications when run from scanbd/systemd
-export DISPLAY=:0
-export XAUTHORITY="/home/$USER_NAME/.Xauthority"
+# Detect display from user's graphical session (e.g. :0, :1); avoid hardcoding :0
+DISPLAY=$(who -u 2>/dev/null | awk -v u="$USER_NAME" '$1==u && $2~/^:[0-9]+$/ {print $2; exit}')
+[ -z "$DISPLAY" ] && DISPLAY=:0
+export DISPLAY
+export XAUTHORITY="${XAUTHORITY:-/home/$USER_NAME/.Xauthority}"
 # D-Bus session address needed for notify-send when run from service (no session bus by default)
 USER_ID=$(id -u "$USER_NAME" 2>/dev/null || id -u)
 [ -S "/run/user/$USER_ID/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus"
@@ -31,6 +34,14 @@ run_as_user() {
   else
     sudo -u "$USER_NAME" "$@"
   fi
+}
+
+# Notify user of saved scan path (when display/viewer fails, PDF is still saved)
+notify_scan_saved() {
+  local path="$1"
+  local msg="Scan saved: $path"
+  run_as_user notify-send -u normal "Scan Saved" "$msg" 2>/dev/null || true
+  echo "$path" > "$SCANS_DIR/.last-scan"
 }
 
 # Detect scanner dynamically - USB device number can change when unplugged/replugged
@@ -87,8 +98,13 @@ else
     PDF_PATH="$SCANS_DIR/scan_${TIMESTAMP}.pdf"
     if convert "$SESSION_DIR/page-1.png" "$PDF_PATH" 2>/dev/null && [ -f "$PDF_PATH" ]; then
       # Open PDF viewer; when user closes it, clear session so next press starts fresh
+      # If viewer fails (e.g. DISPLAY error), PDF is still saved; notify user
       (
-        run_as_user $VIEWER "$PDF_PATH"
+        if run_as_user $VIEWER "$PDF_PATH" 2>/dev/null; then
+          : # viewer opened and closed normally
+        else
+          notify_scan_saved "$PDF_PATH"
+        fi
         rm -f "$SESSION_FILE"
       ) &
     else

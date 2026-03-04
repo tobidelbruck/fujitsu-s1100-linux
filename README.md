@@ -104,6 +104,7 @@ With the scanner connected and journalctl running:
 | "Scanner not found" | Ensure scanner is powered on and connected. Run `scanimage -L` to list devices. Ensure firmware is installed: `ls /usr/share/sane/epjitsu/1100_0B00.nal`. If missing, re-run the installer (it downloads via wget). |
 | scanbd fails to start | Check `journalctl -u scanbd`. Often fixed by the installer (fujitsu.conf, D-Bus policy). |
 | Button press does nothing | Verify scanbd is running and watch `journalctl -u scanbd -f` for errors. |
+| "Cannot open display" | The script auto-detects your display. Ensure you're logged into a graphical session (not SSH-only). Re-run the installer to deploy the fix. The PDF is still saved; if notify-send fails too, the path is written to `~/Documents/scans/.last-scan`. |
 | Permission denied | Ensure user is in `scanner` group. Log out and back in after install. |
 
 ## How the script works
