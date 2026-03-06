@@ -51,8 +51,9 @@ if [ "$1" = "--remove" ] || [ "$1" = "-r" ]; then
   apt-get remove --purge --yes scanbd 2>/dev/null || true
 
   echo ""
-  echo "[3/5] Removing scan-button script..."
-  rm -f /usr/local/bin/scan-button.sh
+  echo "[3/5] Removing scan scripts..."
+  rm -f /usr/local/bin/scan-button.sh /usr/local/bin/scan-events.sh
+  rm -f /etc/scanbd/scanner.d/epjitsu-events.conf 2>/dev/null || true
   echo "  Removed."
 
   echo ""
@@ -165,6 +166,19 @@ if [ -f /etc/scanbd/scanbd.conf ]; then
     s|script = "test\.script"|script = "/usr/local/bin/scan-button.sh"|
   }' /etc/scanbd/scanbd.conf
   echo "  Set scan action script to /usr/local/bin/scan-button.sh"
+  # Device insert/remove notifications (scanner connected/disconnected)
+  sed -i 's|# device_insert_script = "insert.script"|device_insert_script = "/usr/local/bin/scan-events.sh"|' /etc/scanbd/scanbd.conf
+  sed -i 's|# device_remove_script =$|device_remove_script = "/usr/local/bin/scan-events.sh"|' /etc/scanbd/scanbd.conf
+  echo "  Set device insert/remove script for scanner connect notifications."
+  # Epjitsu events (paper load triggers scan, etc.) - always update config, add include if needed
+  if [ -d /etc/scanbd/scanner.d ]; then
+    cp "$SCRIPT_DIR/scanner.d/epjitsu-events.conf" /etc/scanbd/scanner.d/
+    if ! grep -q 'epjitsu-events.conf' /etc/scanbd/scanbd.conf; then
+      sed -i '/^include(scanner.d\/plustek.conf)/a include(scanner.d/epjitsu-events.conf)' /etc/scanbd/scanbd.conf
+      echo "  Added epjitsu-events.conf include."
+    fi
+    echo "  Updated epjitsu-events.conf (paper load triggers scan)."
+  fi
 fi
 
 # Step 4: Fix D-Bus policy so scanbd can register its service
@@ -175,12 +189,13 @@ if [ -f /etc/dbus-1/system.d/scanbd_dbus.conf ]; then
   echo "  Set D-Bus policy user to $INSTALL_USER."
 fi
 
-# Step 6: Install scan-button script
+# Step 6: Install scan scripts
 echo ""
-echo "[6/7] Installing scan-button.sh to /usr/local/bin..."
+echo "[6/7] Installing scan scripts to /usr/local/bin..."
 cp "$SCRIPT_DIR/scan-button.sh" /usr/local/bin/scan-button.sh
-chmod 755 /usr/local/bin/scan-button.sh
-echo "  Installed."
+cp "$SCRIPT_DIR/scan-events.sh" /usr/local/bin/scan-events.sh
+chmod 755 /usr/local/bin/scan-button.sh /usr/local/bin/scan-events.sh
+echo "  Installed scan-button.sh and scan-events.sh."
 
 # Step 7: Restart services
 echo ""

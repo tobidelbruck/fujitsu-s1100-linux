@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Fujitsu ScanSnap S1100 scan-button script for scanbd
-# Triggered when the scanner's physical button is pressed.
+# Triggered when the scanner's physical button is pressed or when paper is loaded (if supported).
 # Supports multi-page scanning: each press adds a page to the current PDF
 # until the user closes the PDF viewer.
 #
@@ -44,6 +44,13 @@ notify_scan_saved() {
   echo "$path" > "$SCANS_DIR/.last-scan"
 }
 
+# Notify immediately on trigger (button press or paper loaded)
+if [ "${SCANBD_ACTION:-}" = "paperload" ]; then
+  run_as_user notify-send -u normal "Scanner" "Paper loaded — scanning..." 2>/dev/null || true
+else
+  run_as_user notify-send -u normal "Scanner" "Scan button pressed — scanning..." 2>/dev/null || true
+fi
+
 # Detect scanner dynamically - USB device number can change when unplugged/replugged
 SCAN_DEVICE=$(scanimage -L 2>/dev/null | grep -oE 'epjitsu:libusb:[0-9]+:[0-9]+' | head -1)
 if [ -z "$SCAN_DEVICE" ]; then
@@ -73,7 +80,7 @@ if [ -n "$SESSION_DIR" ] && [ -d "$SESSION_DIR" ] && [ -n "$TIMESTAMP" ]; then
   if [ -f "$SESSION_DIR/page-$PAGE_NUM.png" ] && identify "$SESSION_DIR/page-$PAGE_NUM.png" >/dev/null 2>&1; then
     PDF_PATH="$SCANS_DIR/scan_${TIMESTAMP}.pdf"
     if convert "$SESSION_DIR"/page-*.png "$PDF_PATH" 2>/dev/null; then
-      : # PDF updated successfully
+      run_as_user notify-send -u normal "Scanner" "Page $PAGE_NUM added to document." 2>/dev/null || true
     else
       run_as_user notify-send -u critical "Scan Error" "Page not loaded. Place a document in the scanner and try again." 2>/dev/null || true
     fi

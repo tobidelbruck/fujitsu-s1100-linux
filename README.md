@@ -8,9 +8,10 @@ This code enables button scanning to PDF with brightness & contrast settings on 
 
 ## Features
 
-- **Button-triggered scanning**: Press the scanner button to scan
+- **Button-triggered scanning**: Press the scanner button or load paper to scan (paper load triggers scan if hardware supports it)
 - **Multi-page PDF**: Each button press adds a page; close the viewer to finalize
 - **Brightness & contrast**: Scans use brightness=30, contrast=10 (adjustable in script)
+- **Desktop notifications**: Immediate "Scan button pressed" or "Paper loaded" on trigger; "Page X added" when appending; scanner connected/disconnected
 - **Dynamic device detection**: Works even when the USB device number changes (e.g. after unplug)
 - **User-independent**: Works for any user who runs the installer
 
@@ -48,7 +49,7 @@ sudo ./install.sh --remove
 make uninstall
 ```
 
-This removes scanbd, the scan-button script, S1100 firmware, and removes your user from the scanner group. It does **not** delete `~/Documents/scans` (your scanned documents).
+This removes scanbd, the scan scripts, S1100 firmware, and removes your user from the scanner group. It does **not** delete `~/Documents/scans` (your scanned documents).
 
 The installer will:
 
@@ -56,7 +57,7 @@ The installer will:
 2. Install S1100 firmware (`1100_0B00.nal`) via wget from the scansnap-firmware GitHub project
 3. Add your user to the `scanner` group and create `~/Documents/scans` with correct ownership
 4. Configure scanbd (user, group, fujitsu.conf, D-Bus policy)
-5. Install `scan-button.sh` to `/usr/local/bin/` (mode 755)
+5. Install `scan-button.sh` and `scan-events.sh` to `/usr/local/bin/` (mode 755)
 6. Restart scanbd
 
 **Note:** Log out and back in (or reboot) after installation so `scanner` group membership takes effect.
@@ -88,7 +89,7 @@ This shows scanbd log output in real time.
 With the scanner connected and journalctl running:
 
 1. Load a page into the scanner
-2. Press the physical scan button
+2. Press the physical scan button (or, if supported, scanning may start automatically when paper is loaded)
 3. In journalctl you should see:
    ```
    scanbd: trigger action for scan for device epjitsu:libusb:003:XXX with script /usr/local/bin/scan-button.sh
